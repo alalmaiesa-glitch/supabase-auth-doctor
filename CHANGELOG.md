@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+### Added
+- Repository-aware PKCE validation for Supabase SSR OAuth: detects missing `exchangeCodeForSession(code)` in the scanned project.
+- Detection of production/Vercel deployments whose configured Site URL still points to localhost.
+
 ## [0.1.0] - 2026-10-06
 
 ### Added
