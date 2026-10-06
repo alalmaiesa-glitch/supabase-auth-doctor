@@ -1,5 +1,7 @@
 # supabase-auth-doctor
 
+[![CI](https://github.com/alalmaiesa-glitch/supabase-auth-doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/alalmaiesa-glitch/supabase-auth-doctor/actions/workflows/ci.yml)
+
 A tiny CLI that diagnoses common **Supabase Auth + OAuth + Vercel** configuration mistakes before they cost you an afternoon.
 
 ```bash
@@ -104,3 +106,14 @@ V0.1 deliberately stays small. It does not edit your Supabase project, change OA
 ## License
 
 MIT
+
+## Publishing
+
+Releases are prepared for npm Trusted Publishing via GitHub Actions OIDC. After the initial npm package exists, configure its Trusted Publisher to:
+
+- GitHub user/org: `alalmaiesa-glitch`
+- Repository: `supabase-auth-doctor`
+- Workflow: `publish.yml`
+- Permission: allow direct `npm publish`
+
+The publish workflow uses short-lived OIDC credentials; no long-lived npm token is stored in GitHub.
