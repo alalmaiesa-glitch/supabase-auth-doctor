@@ -4,7 +4,7 @@
   "description": "A tiny CLI that diagnoses Supabase Auth + OAuth + Vercel configuration mistakes.",
   "type": "module",
   "bin": {
-    "supabase-auth-doctor": "./bin/supabase-auth-doctor.js"
+    "supabase-auth-doctor": "bin/supabase-auth-doctor.js"
   },
   "scripts": {
     "doctor": "node ./bin/supabase-auth-doctor.js",
