@@ -6,9 +6,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
-### Added
-- Repository-aware PKCE validation for Supabase SSR OAuth: detects missing `exchangeCodeForSession(code)` in the scanned project.
-- Detection of production/Vercel deployments whose configured Site URL still points to localhost.
+No user-facing changes yet.
 
 ## [0.1.0] - 2026-10-06
 
@@ -19,10 +17,13 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - Supabase project URL and publishable/anon key validation.
 - Protection against accidentally exposing `sb_secret_` or legacy `service_role` keys as public keys.
 - Production Site URL and Vercel URL checks.
+- Detection of production/Vercel deployments whose configured Site URL still points to localhost.
 - Source scanning for `signInWithOAuth`, provider names, and `redirectTo`.
+- Repository-aware PKCE validation for Supabase SSR OAuth.
+- Detection of missing `exchangeCodeForSession(code)` in SSR/PKCE projects.
 - Comparison of `.env.local` and `.env.example` variable names.
 - Optional Supabase Management API checks for Site URL and redirect allow-list.
 - `explain` command for visualizing the OAuth redirect flow.
 - Text and JSON reports with PASS, WARN, FAIL, and UNKNOWN states.
 - CI across Node.js 20, 22, and 24.
-- npm Trusted Publishing workflow using GitHub Actions OIDC.
+- npm publishing workflow using GitHub Actions OIDC Trusted Publishing.

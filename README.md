@@ -1,64 +1,140 @@
 # supabase-auth-doctor
 
+[![npm version](https://img.shields.io/npm/v/supabase-auth-doctor.svg)](https://www.npmjs.com/package/supabase-auth-doctor)
+[![npm downloads](https://img.shields.io/npm/dm/supabase-auth-doctor.svg)](https://www.npmjs.com/package/supabase-auth-doctor)
 [![CI](https://github.com/alalmaiesa-glitch/supabase-auth-doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/alalmaiesa-glitch/supabase-auth-doctor/actions/workflows/ci.yml)
+[![Node.js](https://img.shields.io/node/v/supabase-auth-doctor.svg)](https://www.npmjs.com/package/supabase-auth-doctor)
+[![License](https://img.shields.io/npm/l/supabase-auth-doctor.svg)](LICENSE)
 
-A tiny CLI that diagnoses common **Supabase Auth + OAuth + Vercel** configuration mistakes before they cost you an afternoon.
+**One command to find the Supabase Auth configuration mistake you have been debugging for an hour.**
+
+`supabase-auth-doctor` is a read-only CLI that diagnoses common **Supabase Auth, OAuth, PKCE, redirect URL, environment, and Vercel configuration** mistakes directly from your project.
 
 ```bash
 npx supabase-auth-doctor
 ```
 
-Example output:
+No global install required. Node.js 20+.
+
+## Why use it?
+
+Supabase OAuth problems often span several places at once:
+
+- application code;
+- local environment variables;
+- Supabase Auth provider settings;
+- Supabase URL Configuration;
+- OAuth provider callback URLs;
+- Vercel production and preview URLs.
+
+A single mismatch can look like a generic provider, redirect, or callback failure. The doctor turns those layers into one report with **PASS / WARN / FAIL / UNKNOWN** results and actionable fixes.
+
+## 60-second quick start
+
+From the root of a Supabase project:
+
+```bash
+npx supabase-auth-doctor
+```
+
+To diagnose a provider other than Google:
+
+```bash
+npx supabase-auth-doctor --provider github
+```
+
+For static checks only, with no network requests:
+
+```bash
+npx supabase-auth-doctor --offline
+```
+
+For machine-readable output:
+
+```bash
+npx supabase-auth-doctor --json
+```
+
+## Example output
 
 ```text
 Supabase Auth Doctor
 
 ✓ PASS  Supabase URL found
 ✓ PASS  Public Auth key found
+✓ PASS  Supabase Auth is reachable
 ✗ FAIL  google provider is disabled
-! WARN  Production site URL not found
+! WARN  No redirectTo target detected
 ? UNKNOWN  Dashboard Auth config not checked
 
-1 failure(s), 1 warning(s), 1 unknown, 2 passed
+1 failure(s), 1 warning(s), 1 unknown, 3 passed
 ```
 
-## What V0.1 checks
+The important part is not the score. It is the fix attached to the failing check.
 
-- Supabase project URL and public key are present.
-- A privileged `sb_secret_` / legacy `service_role` key was not put in a public-key variable.
-- `/auth/v1/settings` is reachable with the configured key.
-- The requested OAuth provider (Google by default) is enabled.
-- The expected provider callback URL is computed correctly.
-- Production Site URL is present and uses HTTPS.
-- Vercel deployment URL is detected when available.
-- `signInWithOAuth`, literal providers, and `redirectTo` targets are scanned from source.
-- `.env.local` and `.env.example` key names are compared.
-- Optional: with `SUPABASE_ACCESS_TOKEN`, the CLI reads the Supabase Auth configuration and verifies Site URL + redirect allow-list.
+## What it checks
 
-The CLI **never prints secret values**.
+### Environment
 
-## Usage
+- Finds common Supabase URL variables across Next.js, Vite, Expo and generic projects.
+- Finds publishable or legacy anon keys.
+- Fails if a privileged `sb_secret_` or legacy `service_role` key appears in a public-key variable.
+- Checks production Site URL presence and HTTPS.
+- Detects a localhost Site URL in a production/Vercel environment.
+- Detects the current Vercel deployment URL when available.
+- Compares relevant `.env.local` key names with `.env.example`.
 
-```bash
-# Diagnose current project
-npx supabase-auth-doctor
+### Supabase Auth
 
-# Diagnose another provider
-npx supabase-auth-doctor --provider github
+- Calls `/auth/v1/settings` using the configured public key.
+- Confirms that Supabase Auth is reachable.
+- Verifies whether the selected OAuth provider is enabled.
+- Computes the expected hosted provider callback:
+  `https://<project-ref>.supabase.co/auth/v1/callback`.
 
-# Explain the OAuth route without running the full report
-npx supabase-auth-doctor explain
+### Application code
 
-# CI / scripts
-npx supabase-auth-doctor --json
+- Detects `signInWithOAuth`.
+- Detects literal OAuth provider names.
+- Detects static and dynamic `redirectTo` targets.
+- Detects `@supabase/ssr`.
+- Fails an SSR/PKCE flow when no `exchangeCodeForSession(code)` call is found.
+- Recognizes callback-like auth routes.
 
-# Static checks only
-npx supabase-auth-doctor --offline
-```
+The source scanner covers JavaScript, TypeScript, JSX/TSX, Vue, Svelte and Astro files while skipping common build and dependency directories.
 
-### Optional deep dashboard check
+### Optional dashboard verification
 
-Public Auth settings can confirm whether a provider is enabled, but Supabase's Site URL and additional Redirect URLs are project management configuration. To verify them too, provide a **scoped** Management API token with `auth_config_read`:
+With a scoped Supabase Management API token, the doctor can also compare the local project against dashboard Auth configuration:
+
+- Site URL;
+- Redirect URL allow-list;
+- literal `redirectTo` targets;
+- current Vercel URL.
+
+This deeper check is optional.
+
+## Safe by design
+
+`supabase-auth-doctor` is diagnostic-only.
+
+It does **not**:
+
+- edit your Supabase project;
+- enable or disable providers;
+- change redirect URLs;
+- attempt a user sign-in;
+- print secret values.
+
+The CLI may read local environment files to locate configuration, but reports variable names and non-secret metadata rather than credential values.
+
+If you find a path that exposes a secret, please follow [SECURITY.md](SECURITY.md) instead of opening a public issue.
+
+## Optional deep dashboard check
+
+Public Auth settings can confirm provider availability, but Site URL and Redirect URLs live in project management configuration.
+
+Provide a **scoped** token with `auth_config_read` only when you want that comparison:
 
 ```bash
 SUPABASE_PROJECT_REF=abcdefghijklmnopqrst \
@@ -66,9 +142,15 @@ SUPABASE_ACCESS_TOKEN='your-scoped-token' \
 npx supabase-auth-doctor
 ```
 
-Do not put `SUPABASE_ACCESS_TOKEN` in browser-exposed environment variables or commit it to the repository.
+Never commit `SUPABASE_ACCESS_TOKEN` or expose it to browser code.
 
-## `explain`
+## Understand the OAuth route
+
+```bash
+npx supabase-auth-doctor explain
+```
+
+Example:
 
 ```text
 Supabase OAuth Flow
@@ -84,36 +166,67 @@ https://example.supabase.co/auth/v1/callback
 https://myapp.com/auth/callback
 ```
 
-This separates two URLs developers often confuse:
+Two URLs are commonly confused:
 
-1. **Provider callback URL** — registered in Google/GitHub/etc. It points back to Supabase Auth.
-2. **App `redirectTo` URL** — allow-listed in Supabase and receives the user after Supabase completes the OAuth exchange.
+1. **Provider callback URL** — registered in Google, GitHub, or another OAuth provider. It points back to Supabase Auth.
+2. **App `redirectTo` URL** — allow-listed in Supabase and receives the user after Supabase finishes the OAuth exchange.
+
+## Commands and options
+
+```text
+supabase-auth-doctor [doctor] [options]
+supabase-auth-doctor explain [options]
+
+--cwd <path>         Project directory (default: current directory)
+--provider <name>    OAuth provider to verify (default: google)
+--json               Machine-readable output
+--offline            Skip network and Management API checks
+--no-color           Disable ANSI colors
+-h, --help           Show help
+```
 
 ## Exit codes
 
-- `0`: no failing checks (warnings/unknowns may remain)
-- `1`: one or more failing checks
-- `2`: CLI usage/internal error
+| Code | Meaning |
+| ---: | --- |
+| `0` | No failing checks. Warnings or unknowns may remain. |
+| `1` | One or more checks failed. |
+| `2` | CLI usage or internal error. |
 
-## Why this exists
+## What an UNKNOWN means
 
-A typical hosted OAuth flow spans application code, Supabase Auth provider settings, Supabase URL Configuration, the provider console, environment variables, and deployment URLs. A typo in any one layer can produce a generic redirect or provider error. `supabase-auth-doctor` turns that configuration chain into one diagnostic report.
+`UNKNOWN` is intentionally different from `FAIL`.
 
-## Scope
+For example, if you do not provide a Management API token, the doctor cannot verify dashboard-only redirect configuration. That is reported as `UNKNOWN`, not treated as a broken project.
 
-V0.1 deliberately stays small. It does not edit your Supabase project, change OAuth provider settings, or attempt sign-in on behalf of a user. It only diagnoses and explains.
+See [FAQ](docs/FAQ.md) for common questions and troubleshooting.
+
+## Current scope
+
+The project deliberately starts small:
+
+- diagnosis before automation;
+- deterministic checks before generated advice;
+- read-only behavior;
+- zero runtime dependencies;
+- actionable failure messages.
+
+If a real Supabase Auth failure is not detected, that is the most useful kind of issue to report.
+
+## Contributing
+
+Bug reports, missed real-world failure cases, and focused checks are welcome.
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Public bug reports must contain **redacted** output only.
+
+## Release and package
+
+- npm: [supabase-auth-doctor](https://www.npmjs.com/package/supabase-auth-doctor)
+- latest GitHub release: [v0.1.0](https://github.com/alalmaiesa-glitch/supabase-auth-doctor/releases/tag/v0.1.0)
+- changelog: [CHANGELOG.md](CHANGELOG.md)
+
+Future npm releases use GitHub OIDC Trusted Publishing with **stage publish** permission. A release is staged for review before final approval rather than published directly by the workflow.
 
 ## License
 
 MIT
-
-## Publishing
-
-Releases are prepared for npm Trusted Publishing via GitHub Actions OIDC. After the initial npm package exists, configure its Trusted Publisher to:
-
-- GitHub user/org: `alalmaiesa-glitch`
-- Repository: `supabase-auth-doctor`
-- Workflow: `publish.yml`
-- Permission: allow direct `npm publish`
-
-The publish workflow uses short-lived OIDC credentials; no long-lived npm token is stored in GitHub.

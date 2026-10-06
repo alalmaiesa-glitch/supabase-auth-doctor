@@ -1,0 +1,52 @@
+name: Feature request
+description: Propose a focused diagnostic check or improvement
+title: "[Feature] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The strongest feature requests start with a real Supabase Auth failure, not a broad feature category.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Real problem
+      description: What Auth/OAuth configuration problem is difficult to diagnose today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: signal
+    attributes:
+      label: Detectable signal
+      description: What deterministic evidence could the CLI inspect to identify this problem?
+      placeholder: "A specific env variable mismatch, callback route pattern, API response, or source-code signal."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected diagnostic
+      description: What PASS/WARN/FAIL/UNKNOWN result and remediation should the user see?
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Example projects or documentation
+      description: Optional links or redacted snippets that show the failure in practice.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This request can be implemented as a read-only diagnostic.
+          required: true
+        - label: This request does not require printing or storing secrets.
+          required: true

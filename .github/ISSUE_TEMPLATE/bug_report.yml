@@ -1,0 +1,89 @@
+name: Bug report
+description: Report a missed, incorrect, or broken Supabase Auth diagnostic
+title: "[Bug] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a real failure case.
+
+        **Do not paste Supabase secret keys, service-role keys, Management API tokens, OAuth client secrets, session tokens, or unredacted environment files.**
+
+  - type: input
+    id: version
+    attributes:
+      label: supabase-auth-doctor version
+      description: Run `npx supabase-auth-doctor --help` or provide the package version.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      placeholder: "v24.19.0"
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Framework / runtime
+      description: For example Next.js, Vite, Expo, SvelteKit, Astro, plain Node, or other.
+      placeholder: "Next.js 16 on Vercel"
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command used
+      render: shell
+      placeholder: "npx supabase-auth-doctor --provider google"
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Redacted doctor output
+      description: Remove all credential values before submitting.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should have happened?
+      description: Describe the check, failure, or remediation you expected.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened?
+      description: Include the real root cause if you already found it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Share the smallest redacted code/configuration snippet that reproduces the problem.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Security check
+      options:
+        - label: I removed all secrets, tokens, credentials, and private environment values from this report.
+          required: true
+        - label: This is not a security vulnerability or credential-exposure report.
+          required: true
