@@ -29,7 +29,11 @@ export async function scanAuthCode(cwd, limit = 800) {
   await walk(cwd, cwd, files, limit)
   const redirectTargets = []
   const oauthProviders = new Set()
+  const codeExchangeFiles = []
+  const callbackRouteFiles = []
   let usesOAuth = false
+  let usesSsr = false
+  let usesExchangeCode = false
 
   for (const file of files) {
     let text
@@ -38,11 +42,22 @@ export async function scanAuthCode(cwd, limit = 800) {
     } catch {
       continue
     }
+
     if (text.includes('signInWithOAuth')) usesOAuth = true
+    if (text.includes('@supabase/ssr')) usesSsr = true
+
+    if (text.includes('exchangeCodeForSession')) {
+      usesExchangeCode = true
+      codeExchangeFiles.push(file.relative)
+    }
+
+    if (/(^|[\\/])auth[\\/]callback([\\/]|\.|$)/i.test(file.relative)) {
+      callbackRouteFiles.push(file.relative)
+    }
 
     for (const m of text.matchAll(/provider\s*:\s*['"]([a-zA-Z0-9_:-]+)['"]/g)) oauthProviders.add(m[1])
 
-    for (const m of text.matchAll(/redirectTo\s*:\s*([`'"])(.*?)\1/gs)) {
+    for (const m of text.matchAll(/redirectTo\s*:\s*([\`'"])(.*?)\1/gs)) {
       const literal = m[2].trim()
       if (literal && !literal.includes('${')) {
         redirectTargets.push({ file: file.relative, value: literal })
@@ -52,5 +67,14 @@ export async function scanAuthCode(cwd, limit = 800) {
     }
   }
 
-  return { usesOAuth, oauthProviders: [...oauthProviders], redirectTargets, scannedFiles: files.length }
+  return {
+    usesOAuth,
+    usesSsr,
+    usesExchangeCode,
+    codeExchangeFiles,
+    callbackRouteFiles,
+    oauthProviders: [...oauthProviders],
+    redirectTargets,
+    scannedFiles: files.length,
+  }
 }
