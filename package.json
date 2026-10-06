@@ -28,5 +28,16 @@
     "src",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alalmaiesa-glitch/supabase-auth-doctor.git"
+  },
+  "homepage": "https://github.com/alalmaiesa-glitch/supabase-auth-doctor#readme",
+  "bugs": {
+    "url": "https://github.com/alalmaiesa-glitch/supabase-auth-doctor/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }
