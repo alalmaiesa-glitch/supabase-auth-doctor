@@ -46,7 +46,16 @@ export function inspectEnvironment(env, byFile = {}) {
     try {
       const site = normalizeBaseUrl(siteEntry.value)
       const secure = new URL(site).protocol === 'https:' || isLocalhostUrl(site)
-      results.push(result('env.site-url', secure ? STATUS.PASS : STATUS.FAIL, 'Site URL found', `${siteEntry.name} = ${site}`, secure ? undefined : 'Use HTTPS for production site URLs.'))
+      const productionLike = env.NODE_ENV === 'production' || Boolean(vercelEntry)
+      const localhostInProduction = productionLike && isLocalhostUrl(site)
+      const status = localhostInProduction ? STATUS.FAIL : (secure ? STATUS.PASS : STATUS.FAIL)
+      const fix = localhostInProduction
+        ? 'Set the canonical production URL. Supabase can fall back to Site URL when redirectTo is missing or rejected.'
+        : (secure ? undefined : 'Use HTTPS for production site URLs.')
+      const detail = localhostInProduction
+        ? `${siteEntry.name} = ${site}; production/Vercel environment detected.`
+        : `${siteEntry.name} = ${site}`
+      results.push(result('env.site-url', status, localhostInProduction ? 'Production Site URL still points to localhost' : 'Site URL found', detail, fix))
     } catch {
       results.push(result('env.site-url', STATUS.FAIL, 'Site URL is invalid', `${siteEntry.name} is not a valid URL.`, 'Set a complete URL such as https://example.com.'))
     }
